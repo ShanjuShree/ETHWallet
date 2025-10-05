@@ -1,5 +1,5 @@
 # ETHWallet
-A simple mock ETH web3 wallet application
+A simple mock ETH web3 wallet application. 
 ETH Mock Wallet is a full-stack web application that mimics the functionality of a real Ethereum wallet without interacting with the actual blockchain.
 
 Key Features
