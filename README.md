@@ -26,5 +26,14 @@ Frontend (HTML/CSS/JavaScript)
 3. Real-time balance updates
 4. Transaction management
 
+Example Workflow
+
+-> Create wallet A with address 0x742d35...
+-> Create wallet B with address 0x5aAeb6...
+-> Check balance of wallet A (should be 100 ETH)
+-> Send 10 ETH from A to B
+-> Check balances (A: 90 ETH, B: 110 ETH)
+-> View transaction history
+
 
 
