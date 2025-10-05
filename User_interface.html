@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETH Mock Wallet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .section h2 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .balance {
+            font-size: 2em;
+            color: #4CAF50;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .address {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .transaction {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 3px solid #4CAF50;
+        }
+
+        .transaction.sent {
+            border-left-color: #f44336;
+        }
+
+        .eth-price {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ETH Mock Wallet</h1>
+
+        <div id="message" class="message"></div>
+
+        <!-- Create Wallet Section -->
+        <div class="section" id="createSection">
+            <h2>Create Wallet</h2>
+            <div class="form-group">
+                <label>Wallet Address:</label>
+                <input type="text" id="newAddress" placeholder="0x...">
+            </div>
+            <div class="form-group">
+                <label>Email (optional):</label>
+                <input type="email" id="newEmail" placeholder="your@email.com">
+            </div>
+            <button onclick="createWallet()">Create Wallet</button>
+        </div>
+
+        <!-- Wallet Info Section -->
+        <div class="section" id="walletSection" style="display:none;">
+            <h2>Your Wallet</h2>
+            <div class="address" id="walletAddress"></div>
+            <div class="balance" id="balance">0 ETH</div>
+            <div class="eth-price" id="ethPrice">ETH Price: $0</div>
+            <button onclick="refreshBalance()">Refresh Balance</button>
+        </div>
+
+        <!-- Send Transaction Section -->
+        <div class="section" id="sendSection" style="display:none;">
+            <h2>Send ETH</h2>
+            <div class="form-group">
+                <label>To Address:</label>
+                <input type="text" id="toAddress" placeholder="0x...">
+            </div>
+            <div class="form-group">
+                <label>Amount Type:</label>
+                <select id="amountType">
+                    <option value="eth">ETH</option>
+                    <option value="usd">USD</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Amount:</label>
+                <input type="number" id="amount" placeholder="0.0" step="0.01">
+            </div>
+            <button onclick="sendTransaction()">Send</button>
+        </div>
+
+        <!-- Transaction History Section -->
+        <div class="section" id="historySection" style="display:none;">
+            <h2>Transaction History</h2>
+            <div id="transactionList"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentAddress = null;
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 5000);
+        }
+
+        async function createWallet() {
+            const address = document.getElementById('newAddress').value;
+            const email = document.getElementById('newEmail').value;
+
+            if (!address) {
+                showMessage('Please enter a wallet address', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/wallet/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address, email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentAddress = address;
+                    showMessage('Wallet created successfully!', 'success');
+                    document.getElementById('createSection').style.display = 'none';
+                    document.getElementById('walletSection').style.display = 'block';
+                    document.getElementById('sendSection').style.display = 'block';
+                    document.getElementById('historySection').style.display = 'block';
+                    document.getElementById('walletAddress').textContent = address;
+                    await refreshBalance();
+                    await loadTransactions();
+                } else {
+                    showMessage(data.error || 'Failed to create wallet', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function refreshBalance() {
+            if (!currentAddress) return;
+
+            try {
+                const response = await fetch(`${API_URL}/wallet/${currentAddress}/balance`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('balance').textContent = 
+                        `${data.balance_eth.toFixed(4)} ETH ($${data.balance_usd.toFixed(2)})`;
+                    document.getElementById('ethPrice').textContent = 
+                        `ETH Price: $${data.eth_price.toFixed(2)}`;
+                }
+            } catch (error) {
+                showMessage('Error fetching balance', 'error');
+            }
+        }
+
+        async function sendTransaction() {
+            const toAddress = document.getElementById('toAddress').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const amountType = document.getElementById('amountType').value;
+
+            if (!toAddress || !amount) {
+                showMessage('Please fill all fields', 'error');
+                return;
+            }
+
+            try {
+                const message = `Send ${amount} ${amountType.toUpperCase()} to ${toAddress}`;
+                let signature = '0x_mock_signature_for_testing';
+
+                // Try to sign with MetaMask if available
+                if (typeof window.ethereum !== 'undefined') {
+                    try {
+                        const provider = new ethers.providers.Web3Provider(window.ethereum);
+                        const signer = provider.getSigner();
+                        signature = await signer.signMessage(message);
+                    } catch (e) {
+                        console.log('Using mock signature (MetaMask not connected)');
+                    }
+                }
+
+                const response = await fetch(`${API_URL}/transaction/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: currentAddress,
+                        to: toAddress,
+                        amount: amount,
+                        amount_type: amountType,
+                        signature: signature,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(`Transaction successful! Hash: ${data.tx_hash}`, 'success');
+                    document.getElementById('toAddress').value = '';
+                    document.getElementById('amount').value = '';
+                    await refreshBalance();
+                    await loadTransactions();
+                } else {
+                    showMessage(data.error || 'Transaction failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function loadTransactions() {
+            if (!currentAddress) return;
+
+            try {
+                const response = await fetch(`${API_URL}/transactions/${currentAddress}`);
+                const data = await response.json();
+
+                const list = document.getElementById('transactionList');
+                list.innerHTML = '';
+
+                if (data.transactions.length === 0) {
+                    list.innerHTML = '<p>No transactions yet</p>';
+                    return;
+                }
+
+                data.transactions.forEach(tx => {
+                    const isSent = tx.from_address.toLowerCase() === currentAddress.toLowerCase();
+                    const div = document.createElement('div');
+                    div.className = 'transaction ' + (isSent ? 'sent' : 'received');
+                    div.innerHTML = `
+                        <strong>${isSent ? 'Sent' : 'Received'}: ${tx.amount.toFixed(4)} ETH</strong><br>
+                        ${isSent ? 'To' : 'From'}: ${isSent ? tx.to_address : tx.from_address}<br>
+                        <small>${new Date(tx.created_at).toLocaleString()}</small>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+            }
+        }
+
+        // Connect to MetaMask
+        async function connectMetaMask() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('newAddress').value = accounts[0];
+                    showMessage('MetaMask connected!', 'success');
+                } catch (error) {
+                    showMessage('MetaMask connection failed', 'error');
+                }
+            } else {
+                showMessage('Please install MetaMask', 'error');
+            }
+        }
+
+        // Add MetaMask connect button if available
+        if (typeof window.ethereum !== 'undefined') {
+            const btn = document.createElement('button');
+            btn.textContent = 'Connect MetaMask';
+            btn.onclick = connectMetaMask;
+            btn.style.marginBottom = '10px';
+            document.getElementById('createSection').insertBefore(
+                btn, 
+                document.getElementById('createSection').firstChild.nextSibling
+            );
+        }
+
+        // Refresh balance every 30 seconds
+        setInterval(() => {
+            if (currentAddress) {
+                refreshBalance();
+                loadTransactions();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
