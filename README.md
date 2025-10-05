@@ -14,17 +14,17 @@ Key Features
 🏗️ Architecture
 Backend (Python/Flask)
 
-RESTful API for wallet operations
-SQLite database for data persistence
-Web3.py for signature verification
-Real-time cryptocurrency price fetching
+1. RESTful API for wallet operations
+2. SQLite database for data persistence
+3. Web3.py for signature verification
+4. Real-time cryptocurrency price fetching
 
 Frontend (HTML/CSS/JavaScript)
 
-Clean, responsive user interface
-Ethers.js for blockchain interactions
-Real-time balance updates
-Transaction management
+1. Clean, responsive user interface
+2. Ethers.js for blockchain interactions
+3. Real-time balance updates
+4. Transaction management
 
 
 
