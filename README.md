@@ -5,10 +5,15 @@ ETH Mock Wallet is a full-stack web application that mimics the functionality of
 Key Features
 
 ✅ Wallet Creation: Create multiple Ethereum wallets with unique addresses
+
 ✅ Balance Management: Track ETH balances with real-time USD conversion
+
 ✅ Send Transactions: Transfer ETH between wallets with signature verification
+
 ✅ Price Integration: Live ETH-to-USD price fetching from CoinGecko API
+
 ✅ Transaction History: View complete send/receive history
+
 ✅ Email Notifications: Optional email alerts for transactions
 
 🏗️ Architecture
