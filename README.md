@@ -35,5 +35,17 @@ Example Workflow
 5. Check balances (A: 90 ETH, B: 110 ETH)
 6. View transaction history
 
+Setup Instructions:
+
+# Install dependencies
+pip install flask flask-cors web3 eth-account requests
+
+# Set environment variables for email (optional)
+export SMTP_EMAIL="your-email@gmail.com"
+export SMTP_PASSWORD="your-app-password"
+
+# Run the server
+python server.py
+
 
 
