@@ -1,0 +1,7 @@
+POST /api/wallet/create - Create new wallet
+GET /api/wallet/<address>/balance - Get balance
+GET /api/price - Get current ETH price
+POST /api/convert - Convert USD ↔ ETH
+POST /api/transaction/send - Send transaction
+GET /api/transactions/<address> - Get transaction history
+GET /api/transaction/<tx_hash> - Get specific transaction
